@@ -1,0 +1,27 @@
+defaults:
+  - override hydra/launcher: submitit_slurm
+
+hydra:
+  job:
+    chdir: False
+    config:
+      override_dirname:
+        exclude_keys:
+          - name
+  run:
+    dir: outputs/${name}/${now:%Y-%m-%d-%H-%M-%S}
+  sweep:
+    dir: multirun/${name}/${now:%Y-%m-%d-%H-%M-%S}
+    subdir: cfg:${hydra.job.override_dirname}
+  launcher:
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 1420
+    cpus_per_task: 10
+    mem_gb: 64
+    nodes: 1
+    name: ${hydra.job.name}
+    partition: "gpu"
+    gpus_per_task: 1
+    array_parallelism: 4
+    setup:
+      - conda activate hard-feat
