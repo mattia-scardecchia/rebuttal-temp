@@ -2,7 +2,7 @@ logging:
   level: INFO
 name: symmetric_rules/perceptron
 seed: 17
-device: mps
+device: cuda
 'N': 100
 H: 1600
 num_layers: 1
