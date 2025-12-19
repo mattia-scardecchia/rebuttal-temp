@@ -14,7 +14,6 @@ METHOD_MAP = {
     "sym0": ("perceptron", True),
     "sym1": ("sym1", None),
     "sym2": ("sym2", None),
-    "sym3": ("sym3", None),
 }
 
 JVALS = [0.0, 0.5]
@@ -32,7 +31,7 @@ def load_method(base_dir, method, final_or_max):
 
 def compute_stats(df, final_or_max):
     stats = (
-        df.groupby(["J_D", "lambda_input_skip", "double_dynamics", "method"])
+        df.groupby(["J_D", "double_dynamics", "method"])
         .agg(
             train_mean=(f"{final_or_max.lower()}_train_acc", "mean"),
             train_std=(f"{final_or_max.lower()}_train_acc", "std"),
@@ -48,7 +47,6 @@ def compute_stats(df, final_or_max):
 
 
 def plot_stats(stats, final_or_max, output_dir):
-    lam_vals = sorted(stats["lambda_input_skip"].unique())[-1:]
     methods = list(METHOD_MAP.keys())
     methods = [m for m in methods if m != "sym3"]  # Exclude sym3 for this plot
     x = np.arange(len(methods))
@@ -56,15 +54,14 @@ def plot_stats(stats, final_or_max, output_dir):
 
     for dd in [False, True]:
         fig, axes = plt.subplots(
-            len(JVALS), len(lam_vals), figsize=(4, 4), sharey=True, squeeze=False
+            len(JVALS), 1, figsize=(4, 4), sharey=True, squeeze=False
         )
         for i, Jval in enumerate(JVALS):
-            for j, lam in enumerate(lam_vals):
+            for j in range(1):
                 ax = axes[i, j]
                 block = stats[
                     (stats["double_dynamics"] == dd)
                     & (stats["J_D"] == Jval)
-                    & (stats["lambda_input_skip"] == lam)
                 ]
 
                 train = [block[block.method == m].train_mean.values[0] for m in methods]
@@ -104,7 +101,6 @@ def plot_stats(stats, final_or_max, output_dir):
             "sym0 : symmetric init, asymmetric update\n"
             "sym1 : symmetric init, double-conditioned symmetric update\n"
             "sym2 : symmetric init, symmetric update\n"
-            "sym3 : symmetric init, asymmetric update + forceful symmetrization"
         )
         plt.tight_layout(rect=[0, 0.1, 1, 0.95])
         # fig.text(
@@ -140,7 +136,7 @@ def main(base_dir, final_or_max):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate symmetric rules plots")
     parser.add_argument(
-        "base_dir",
+        "--base_dir",
         nargs="?",
         default="experiments/symmetric_rules",
         help="Root experiments folder (default: experiments/symmetric_rules)",
